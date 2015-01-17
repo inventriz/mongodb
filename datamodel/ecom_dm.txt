@@ -1,0 +1,143 @@
+Product Collection
+==================
+{
+	_id: ObjectId("54794c28d5bf15daee4cb42b"),
+	itemNumber: "12345678",
+	name: "Apple® iPad Air 32GB Wi-Fi - Silver/White (MD789LL/A)",
+	description: "The iPad Air from Apple is 20 percent thinner than the 4th generation iPad and weighs just one pound, so it feels unbelievably light in your hand. It comes with a 9.7-inch Retina display, the powerful A7 chip with 64-bit architecture, ultrafast wireless, powerful apps, and up to 10 hours of battery life",
+	type: "SA",
+	category: "Electronics",
+	path: "Electronics/iPad and Tablets/iPad",
+	priceInfo: [{
+		type: "list",
+		startDate: ISODate("2012-03-09T20:55:36Z"),
+		endDate: ISODate("2012-03-31T20:55:36Z"),
+		price: 10,
+		unit: "USD"
+	},
+	{
+		type: "regular",
+		startDate: new Date(),
+		endDate: ISODate("2012-03-21T20:55:36Z"),
+		price: 11,
+		unit: "USD"
+	},
+	{
+		type: "saving",
+		price: 1,
+		unit: "USD"
+	},
+	{
+		type: "perct_saving",
+		price: 10,
+		unit: "%"
+	}],
+	carted: [],
+	inventory: {
+		totalQty: 500,
+		lastUpdatedOn: null,
+		store: [{
+			name: "fullfillment center 1",
+			qty: 350,
+			qtyUnit: "number",
+			lastUpdatedOn: null
+		},{
+			name: "fullfillment center 2",
+			qty: 150,
+			qtyUnit: "number",
+			lastUpdatedOn: null
+		}]
+	},
+	details: {
+		maxResolution: "2048 x 1536",
+		displayFeatures: "Retina Display, Backlit LED",
+		computerFeatures: "Touch Screen, Built-in Speaker, Integrated Microphone, Built-In Bluetooth",
+		processorBrand: "Apple",
+		processorType: "Apple A7",
+		dataStorageCapacity: "32GB Hard Drive Capacity",
+		wiredConnectivity: "Lightning Connector",
+		wirelessTechnology: "Bluetooth 4.0",
+		wirelessStandard: "IEEE 802.11a/b/g/n",
+		inputType: "Headphone Jack",
+		outputType: "Headphone Jack",
+		audioFeatures: "Built-In Speaker",
+		numberOfAudioOutputs: "1 Rear",
+		builtInWebcamFeatures: "Built-In 5 Megapixel Webcam, Built-In 1.2 Megapixel Webcam Front",
+		batteryChargeLife: "Up to 10 Hours",
+		operatingSystem: "Apple iOS 7",
+		softwareIncluded: "iTunes",
+		includes: "Power Cord, Quick Start Guide, Lightning-to-USB cable",
+		batteryRequired: "1 lithium polymer non-universal",
+		batteryIncluded: "Yes"
+	},
+	otherInfo: {
+		warrantyInfo: "To obtain a copy of the manufacturer’s warranty for this item",
+		onlineItemNo: "14423834",
+		storeItemNo: "057-10-1355",
+		misc: ["Item can be gift wrapped",
+		"Imported"]
+	},
+	specification: [{
+		specName: "MP3 Player Type",
+		specValue: "iPad Air"
+	},
+	{
+		specName: "Features Computer",
+		specValue: "Touch Screen, Built-In Speaker, Integrated Microphone, Built-In Bluetooth"
+	},
+	{
+		specName: "Accessories Included: Electronics Product",
+		specValue: "Power Cord, Quick Start Guide, Lightning-to-USB cable"
+	},
+	{
+		specName: "Product Width",
+		specValue: "6.600"
+	},
+	{
+		specName: "Product Depth",
+		specValue: "0.290"
+	},
+	{
+		specName: "Product Weight",
+		specValue: "1.000"
+	},
+	{
+		specName: "Product Height",
+		specValue: "9.400"
+	},
+	{
+		specName: "Warranty Description",
+		specValue: "1 Year Limited Manufacturer Warranty"
+	}],
+	reviews: [{
+		rating: 5,
+		title: "iPad Air Tablet",
+		comment: "I bought this tablet because of its size, weight and clarity of the screen which are all perfect for my needs. There are many apps from which to choose which is another reason I purchased this tablet. ABC had a great price and their delivery service was excellent",
+		isRecommended: "Y",
+		isReviewHelpfulNumber: 3,
+		reviewDate: new Date(),
+		reviewedBy: "Lon"
+	},
+	{
+		rating: 4,
+		title: "Best Tablet",
+		comment: "I love my iPad Air. It has all the functionality I need to replace my laptop",
+		isRecommended: "Y",
+		isReviewHelpfulNumber: 2,
+		reviewDate: new Date(),
+		reviewedBy: "Jack"
+	}]
+}
+
+
+Cart Collection
+===============
+{
+	_id : ObjectId(),
+	last_update : new Date(),
+	status : "active",
+	items : [
+		{partNumber : "123456", qty : 1},
+		{partNumber : "456789", qty : 2}
+	]
+}
