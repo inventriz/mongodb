@@ -1,0 +1,43 @@
+{
+	employee_id : "ORG001234",
+	first_name : "",
+	last_name : "",
+	email : ["rana.c@test.in","abcd.dfg@test.com"]
+	phone_number : ["123-456-4323", "829-873-8716"],
+	hire_date : Date(),
+	salary : 123345,
+	commission_pct : 12,
+	jobs : [{
+		job_id : 1234,
+		job_title : "Architect",
+		min_salary : 1234,
+		max_salary : 234243244,
+		start_date : Date(),
+		end_date : Date(),
+		department : [{
+			department_id : 3455,
+			manager_id : 123,
+			location : {
+				location_id : 456,
+				street_address : "930 Casanova Avenue",
+				postal_code : 93940,
+				state_province : "CA",
+				country : {
+					country_id : 567,
+					country_name : "US",
+					region : {
+						region_id : 4567,
+						region_name : "West"
+					}
+				}
+			}			
+		}]
+	}]
+}
+
+
+country : {
+					$ref : "country",
+					$id : "country_id",
+					$db : "master"
+				}

@@ -1,0 +1,385 @@
+db.inventory.insert( { _id: 10, type: "misc", item: "card", qty: 15 } )
+
+Find
+------
+db.inventory.find( {} ) - to find all document
+db.collection.findOne() - to find one document
+
+db.users.find(
+	{ status: { $ne: "A" } }
+)
+
+
+db.users.find(
+	{ age: { $gt: 25 } }
+)
+
+db.users.find(
+{ age: { $gt: 25, $lte: 50 } }
+)
+
+
+
+IN
+---
+db.inventory.find( { type: { $in: [ 'food', 'snacks' ] } } )
+
+
+AND
+---
+db.inventory.find( { type: 'food', price: { $lt: 9.95 } } )
+
+
+OR
+---
+db.inventory.find(
+	{ $or: [
+			{ qty: { $gt: 100 } },
+			{ price: { $lt: 9.95 } }
+		]
+	}
+)
+
+
+AND / OR
+---------
+db.inventory.find( { type: 'food', $or: [ { qty: { $gt: 100 } },
+	{ price: { $lt: 9.95 } } ]
+} )
+
+
+Embeded Doc
+------------
+
+db.inventory.find(
+	{
+		producer: {
+			company: 'ABC123',
+			address: '123 Street'
+		}
+	}
+)
+
+
+db.inventory.find( { 'producer.company': 'ABC123' } )
+
+
+Array
+-----
+db.inventory.find( { tags: [ 'fruit', 'food', 'citrus' ] } )
+db.inventory.find( { tags: 'fruit' } )
+db.inventory.find( { 'tags.0' : 'fruit' } )
+
+
+
+
+return specific fields
+exclude id - _id:0
+return all but excluded fields - db.inventory.find( { type: 'food' }, { type:0 } )
+
+
+limit
+skip
+sort
+count
+
+
+Update
+------
+db.inventory.update(
+	{ type: "book", item : "journal" },
+	{ $set : { qty: 10 } },
+	{ upsert : true }
+)
+
+
+db.inventory.save( { type: "book", item: "notebook", qty: 40 } )
+upsert - update or insert
+multi - to update multiple doc
+
+$unset
+db.users.update(
+	{ },
+	{ $unset: { join_date: "" } },
+	{ multi: true }
+)
+
+$inc - to increment field
+---------------------------
+db.users.update(
+	{ status: "A" } ,
+	{ $inc: { age: 3 } },
+	{ multi: true }
+)
+
+Remove
+-------
+db.class.remove({}) - remove all
+db.user.remove({status : "D"}) - remove all the matching document
+db.inventory.remove( { type : "food" }, 1 ) - remove a single document that matches
+
+Drop a Collection
+-----------------
+db.class.drop()
+
+
+Distinct
+---------
+db.class.distinct("age")
+db.runCommand({distinct : "class", key: "age", query: {subject : "MongoDB"}})
+
+Write Concern
+--------------
+db.class.insert(st,{ writeConcern: { w:0 } })
+
+loading a js function
+-------------------
+db.system.js.save(
+	{ 
+		_id: "echoFunction",
+		value : function(x) { return x; }
+	}
+)
+db.eval( "echoFunction( 'test' )" )
+to disable --noscripting
+
+> load("D:\\Rana2\\sample.js")
+true
+> test(3,5);
+8
+
+
+$exists
+-------
+db.test.find( { cancelDate : { $exists: false } } )
+
+$type
+-----
+db.test.find( { cancelDate : { $type: 10 } } ) -check module 2 ppt - mongodb data type slide
+
+$mod
+-----
+{ "_id" : 1, "item" : "abc123", "qty" : 0 }
+{ "_id" : 2, "item" : "xyz123", "qty" : 5 }
+{ "_id" : 3, "item" : "ijk123", "qty" : 12 }
+db.inventory.find( { qty: { $mod: [ 4, 0 ] } } )
+
+
+$regex
+------
+db.users.find({"name": /.*m.*/})
+db.collection.find( { field: /acme.*corp/i } );
+db.collection.find( { field: { $regex: 'acme.*corp', $options: 'i' } } );
+
+$elemMatch
+----------
+
+$push / $pushAll
+----------------
+db.test.update({}, {$push : {<arr> : <value>}})
+db.survey.update( { _id: 1 }, { $pushAll: { scores: [ 0, 5 ] } } )
+
+$push with $each/$sort/$slice
+-----------------------------
+{
+   "_id" : 5,
+   "quizzes" : [
+                  { wk: 1, "score" : 10 },
+                  { wk: 2, "score" : 8 },
+                  { wk: 3, "score" : 5 },
+                  { wk: 4, "score" : 6 }
+               ]
+}
+
+db.students.update( { _id: 5 },
+                    { $push: { quizzes: { $each: [ { wk: 5, score: 8 },
+                                                   { wk: 6, score: 7 },
+                                                   { wk: 7, score: 6 } ],
+                                          $sort: { score: -1 },
+                                          $slice: 3
+                                        }
+                             }
+                    }
+                  )
+db.survey.update( { _id: 1 },
+                    { $push: { quiz: { $each: [ { wk: 1, score: 10 },
+                                                   { wk: 3, score: 9 },
+                                                   { wk: 6, score: 15 } ],
+                                          $sort: { score: -1 }
+                                        }
+                             }
+                    }
+                  )
+
+
+$pull / $pullAll
+----------------
+db.accounts.update({}, {$pull: {<arr>: <value>}})
+db.profiles.update( { _id: 1 }, { $pull: { votes: { $gte: 6 } } } )
+db.survey.update( { _id: 1 }, { $pullAll: { scores: [ 0, 5 ] } } )
+
+$addToSet
+---------
+-- Checks unique
+{ _id: 1, item: "filter", tags: [ "electronics", "camera" ] }
+db.inventory.update(
+                     { _id: 1 },
+                     { $addToSet: { tags: "accessories"  } }
+                   )
+
+
+$size
+-----
+db.collection.find( { <arr>: { $size: 2 } } );
+
+
+Journal
+-------
+--journalCommitInterval 200
+
+Model data of Atomic Operations
+-------------------------------
+{
+	_id: 123456789,
+	title: "MongoDB: The Definitive Guide",
+	author: [ "Kristina Chodorow", "Mike Dirolf" ],
+	published_date: ISODate("2010-09-24"),
+	pages: 216,
+	language: "English",
+	publisher_id: "oreilly",
+	available: 3,
+	checkout: [ { by: "joe", date: ISODate("2012-10-15") } ]
+}
+
+db.books.findAndModify ( {
+	query: {
+		_id: 123456789,
+		available: { $gt: 0 }
+	},
+	update: {
+		$inc: { available: -1 },
+		$push: { checkout: { by: "Diana", date: new Date() } }
+	}
+} )
+
+
+Model data to support key word search
+------------------------------------
+{ 
+	title : "Moby-Dick" ,
+	author : "Herman Melville" ,
+	published : 1851 ,
+	ISBN : 0451526996 ,
+	topics : [ "whaling" , "allegory" , "revenge" , "American" ,"novel" , "nautical" , "voyage" , "Cape Cod" ]
+}
+
+db.volumes.ensureIndex( { topics: 1 } )
+db.volumes.findOne( { topics : "voyage" }, { title: 1 } )
+db.volumes.findOne( { title : "Moby"})
+
+
+Limit Number of Elements in an Array after an Update
+-----------------------------------------------------
+New in version 2.4.
+
+Consider an application where users may submit many scores (e.g. for a test), but the application only needs to track
+the top three test scores.
+This pattern uses the $push operator with the $each, $sort, and $slice modifiers to sort and maintain an array
+of fixed size.
+Important: The array elements must be documents in order to use the $sort modifier.
+
+
+Consider the following document in the collection students:
+{
+	_id: 1,
+	scores: [
+		{ attempt: 1, score: 10 },
+		{ attempt: 2 , score:8 }
+	]
+}
+
+The following update uses the $push operator with:
+• the $each modifier to append to the array 2 new elements,
+• the $sort modifier to order the elements by ascending (1) score, and
+• the $slice modifier to keep the last 3 elements of the ordered array.
+
+db.students.update(
+	{ _id: 1 },
+	{ $push: { scores: { $each : [
+				{ attempt: 3, score: 7 },
+				{ attempt: 4, score: 4 }
+			],
+			$sort: { score: 1 },
+			$slice: -3
+			}
+		}
+	}
+)
+
+Note: When using the $sort modifier on the array element, access the field in the subdocument element directly
+instead of using the dot notation on the array field.
+After the operation, the document contains only the top 3 scores in the scores array:
+{
+	"_id" : 1,
+	"scores" : [
+		{ "attempt" : 3, "score" : 7 },
+		{ "attempt" : 2, "score" : 8 },
+		{ "attempt" : 1, "score" : 10 }
+	]
+}
+
+Creating an auto incrementing function
+--------------------------------------
+
+Use a separate counters collection to track the last number sequence used.
+The _id field contains the sequence name and the seq field contains the last value of the sequence.
+
+1. Insert into the counters collection, the initial value for the userid:
+db.counters.insert(
+	{
+		_id: "userid",
+		seq: 0
+	}
+)
+
+2. Create a getNextSequence function that accepts a name of the sequence. The function uses the
+findAndModify() method to atomically increment the seq value and return this new value:
+
+function getNextSequence(name) {
+	var ret = db.counters.findAndModify(
+		{
+			query: { _id: name },
+			update: { $inc: { seq: 1 } },
+			new: true
+		}
+	);
+	return ret.seq;
+}
+
+3. Use this getNextSequence() function during insert().
+
+db.users.insert(
+	{
+		_id: getNextSequence("userid"),
+		name: "Sarah C."
+	}
+)
+db.users.insert(
+	{
+		_id: getNextSequence("userid"),
+		name: "Bob D."
+	}
+)
+
+You can verify the results with find(). The _id fields contain incrementing sequence values::
+
+db.users.find()
+
+{
+	_id : 1,
+	name : "Sarah C."
+}
+{
+	_id : 2,
+	name : "Bob D."
+}
