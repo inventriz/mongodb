@@ -1,0 +1,258 @@
+> db.serverStatus()
+{
+        "host" : "BLRTCHAKR45477",
+        "version" : "2.6.1",
+        "process" : "mongod.exe",
+        "pid" : NumberLong(7460),
+        "uptime" : 1780, // time in sec since server is started
+        "uptimeMillis" : NumberLong(1779252),
+        "uptimeEstimate" : 1774,
+        "localTime" : ISODate("2014-06-15T11:18:20.239Z"),
+        "asserts" : {
+                "regular" : 0, // # of regular assertions since server start
+                "warning" : 0, // # of warnings
+                "msg" : 0, // # msg assertions
+                "user" : 0, // # of user assertions (disk space issue or duplicate key error)
+                "rollovers" : 0 // # of rollover after 2 raise to the power 30 assertions
+        },
+        "backgroundFlushing" : { // data about flushing of data to disk
+                "flushes" : 29, // number of flushes; should grow over time
+                "total_ms" : 1347, // total time in ms db takes to flush data on disk
+                "average_ms" : 46.44827586206897, // avg time to flush
+                "last_ms" : 28, // time is ms for the last flush
+                "last_finished" : ISODate("2014-06-15T11:17:41.048Z") // time when flushes last
+        },
+        "connections" : { // connection statistics
+                "current" : 1, // currently is use
+                "available" : 999999, // total available
+                "totalCreated" : NumberLong(1) // total created since start
+        },
+        "cursors" : {
+                "note" : "deprecated, use server status metrics",
+                "clientCursors_size" : 0,
+                "totalOpen" : 0,
+                "pinned" : 0,
+                "totalNoTimeout" : 0,
+                "timedOut" : 0
+        },
+        "dur" : { // regarding journaling ops
+                "commits" : 30, // number of tx written to journal during last journal commit
+                "journaledMB" : 0, // data in MB written to journal
+                "writeToDataFilesMB" : 0, // data in MB written to data file
+                "compression" : 0, // journaled_size_of_data : uncompressed_size_of_data
+                "commitsInWriteLock" : 0, // number of commits while a write lock is held
+                "earlyCommits" : 0, // number of times MongoDB requests for a commit before the actual journal commit
+                "timeMs" : {
+                        "dt" : 3060, // amount of time (ms) over which data is collected for timeMS
+                        "prepLogBuffer" : 0,  // time (ms) taken to prepare to write to journal
+                        "writeToJournal" : 0, // time (ms) taken to write to journal
+                        "writeToDataFiles" : 0, // time (ms) to write to data file after journal
+                        "remapPrivateView" : 0 // time (ms) to do memory map
+                }
+        },
+        "extra_info" : { // collects data abt the system
+                "note" : "fields vary by platform", // data in this structure depends on platform
+                "page_faults" : 19399, // total number of page faults
+                "usagePageFileMB" : 102,
+                "totalPageFileMB" : 15777,
+                "availPageFileMB" : 10951,
+                "ramMB" : 7889 // RAM size in MB
+        },
+        "globalLock" : {
+                "totalTime" : NumberLong(1779252000), // time in micro sec since db last started
+                "lockTime" : NumberLong(135197), // total lock time in micro sec
+                "currentQueue" : { // number of operation in queue due to lock
+                        "total" : 0,
+                        "readers" : 0,
+                        "writers" : 0
+                },
+                "activeClients" : { // number of clients performing read and write
+                        "total" : 0,
+                        "readers" : 0,
+                        "writers" : 0
+                }
+        },
+        "indexCounters" : { // info on indexes
+                "accesses" : 2, // number of time indexes are accessed; combination of hits and miss
+                "hits" : 2, // number of index access from memory 
+                "misses" : 0, // number of index access not from memory
+                "resets" : 0, // number of time index counters is reset since start; typically 0
+                "missRatio" : 0 // miss : hits
+        },
+        "locks" : {
+                "." : {
+                        "timeLockedMicros" : {
+                                "R" : NumberLong(35673), // time in micro sec global read lock
+                                "W" : NumberLong(135197) // time in micro sec global write lock
+                        },
+                        "timeAcquiringMicros" : {
+                                "R" : NumberLong(39896), // amount of time in microseconds that operations have spent waiting to acquire a global read lock
+                                "W" : NumberLong(11657) // time in micro sec that operations have spent waiting to acquire a global write lock
+                        }
+                },
+                "admin" : {
+                        "timeLockedMicros" : {
+                                "r" : NumberLong(3014),
+                                "w" : NumberLong(0)
+                        },
+                        "timeAcquiringMicros" : {
+                                "r" : NumberLong(80),
+                                "w" : NumberLong(0)
+                        }
+                },
+                "local" : {
+                        "timeLockedMicros" : {
+                                "r" : NumberLong(16888),
+                                "w" : NumberLong(50)
+                        },
+                        "timeAcquiringMicros" : {
+                                "r" : NumberLong(927),
+                                "w" : NumberLong(2)
+                        }
+                },
+                "test" : {
+                        "timeLockedMicros" : {
+                                "r" : NumberLong(737),
+                                "w" : NumberLong(0)
+                        },
+                        "timeAcquiringMicros" : {
+                                "r" : NumberLong(93),
+                                "w" : NumberLong(0)
+                        }
+                },
+                "foo" : {
+                        "timeLockedMicros" : {
+                                "r" : NumberLong(25006), // time in micro sec database specific read lock
+                                "w" : NumberLong(182) // time in micro sec database specific write lock
+                        },
+                        "timeAcquiringMicros" : {
+                                "r" : NumberLong(11702),
+                                "w" : NumberLong(6)
+                        }
+                }
+        },
+        "network" : { // network use
+                "bytesIn" : 3311, // in bytes; received by mongod
+                "bytesOut" : 20144, // in bytes; sent from mongod
+                "numRequests" : 46 // total number of distinct request the server has received
+        },
+        "opcounters" : {
+                "insert" : 1, // total # of insert since server start
+                "query" : 127, // # of quer
+                "update" : 0, // update
+                "delete" : 0, // delete
+                "getmore" : 0, // get more for cursor/ secondary nodes
+                "command" : 38 // number of commands
+        },
+        "opcountersRepl" : { // granular det when replication enabled
+                "insert" : 0,
+                "query" : 0,
+                "update" : 0,
+                "delete" : 0,
+                "getmore" : 0,
+                "command" : 0
+        },
+        "recordStats" : {
+                "accessesNotInMemory" : 0, // number of request when page not in memory
+                "pageFaultExceptionsThrown" : 0, // # of page fault exception thrown
+                "admin" : {
+                        "accessesNotInMemory" : 0,
+                        "pageFaultExceptionsThrown" : 0
+                },
+                "foo" : {
+                        "accessesNotInMemory" : 0,
+                        "pageFaultExceptionsThrown" : 0
+                },
+                "local" : {
+                        "accessesNotInMemory" : 0,
+                        "pageFaultExceptionsThrown" : 0
+                },
+                "test" : {
+                        "accessesNotInMemory" : 0,
+                        "pageFaultExceptionsThrown" : 0
+                }
+        },
+        "writeBacksQueued" : false, // is true when there are operations from a mongos instance queued for retrying. Typically false.
+        "mem" : { // current memory usage
+                "bits" : 64,
+                "resident" : 56, // MB RAM being used by the process
+                "virtual" : 466, // MB virtual memory being used by the process
+                "supported" : true, // supports extended memory information
+                "mapped" : 160, // MB memory mapped by the db
+                "mappedWithJournal" : 320 // MB memory mapped including the memory mapped with journal
+        },
+        "metrics" : {
+                "cursor" : {
+                        "timedOut" : NumberLong(0), // total number of cursor that have timed out since the server start
+                        "open" : {
+                                "noTimeout" : NumberLong(0), // provides the number of cursor with DBQuery.Option.noTimeout
+                                "pinned" : NumberLong(0), // provides the number of pinned open cursors
+                                "total" : NumberLong(0) // number of total cursors
+                        }
+                },
+                "document" : {
+                        "deleted" : NumberLong(0), // total docs deletes
+                        "inserted" : NumberLong(1), // total docs inserted
+                        "returned" : NumberLong(35), // total docs returned
+                        "updated" : NumberLong(0) // total docs updated
+                },
+                "getLastError" : { 
+                        "wtime" : { // getLastError with w>1
+                                "num" : 0, // total number of getLastError calls
+                                "totalMillis" : 0 // time (ms) taken to perform getLastError
+                        },
+                        "wtimeouts" : NumberLong(0) // number of timeouts
+                },
+                "operation" : {
+                        "fastmod" : NumberLong(0), // number of update operations that neither cause documents to grow nor require updates to the index
+                        "idhack" : NumberLong(0), //  number of queries that contain the _id field.
+                        "scanAndOrder" : NumberLong(0) // total number of queries that return sorted numbers that cannot perform the sort operation using an index
+                },
+                "queryExecutor" : {
+                        "scanned" : NumberLong(0), //  total number of index items scanned during queries and query-plan evaluation
+                        "scannedObjects" : NumberLong(0) // total number of scanned objects
+                },
+                "record" : {
+                        "moves" : NumberLong(0) // number of times document moves due to document growth over its allocated size
+                },
+                "repl" : { // stats on replica sets
+                        "apply" : {
+                                "batches" : {
+                                        "num" : 0,
+                                        "totalMillis" : 0
+                                },
+                                "ops" : NumberLong(0)
+                        },
+                        "buffer" : {
+                                "count" : NumberLong(0),
+                                "maxSizeBytes" : 268435456,
+                                "sizeBytes" : NumberLong(0)
+                        },
+                        "network" : {
+                                "bytes" : NumberLong(0),
+                                "getmores" : {
+                                        "num" : 0,
+                                        "totalMillis" : 0
+                                },
+                                "ops" : NumberLong(0),
+                                "readersCreated" : NumberLong(0)
+                        },
+                        "preload" : {
+                                "docs" : {
+                                        "num" : 0,
+                                        "totalMillis" : 0
+                                },
+                                "indexes" : {
+                                        "num" : 0,
+                                        "totalMillis" : 0
+                                }
+                        }
+                },                
+                "ttl" : {
+                        "deletedDocuments" : NumberLong(0), // total number of documents deleted thru TTL index
+                        "passes" : NumberLong(29) // number of time background process removes collections with TTL index
+                }
+        },
+        "ok" : 1
+}
+>

@@ -1,0 +1,255 @@
+Backup
+-------
+mongodump
+mongodump --dbpath D:\Rana2\custom_data -o D:\Rana2\custom_data\dump - server is not running
+mongodump --host localhost --port 30000
+mongodump --collection collection --db test
+
+Restore
+-------
+mongorestore dump
+mongorestore --host localhost --port 30000 dump
+mongorestore --dbpath D:\Rana2\custom_data D:\Rana2\custom_data\dump - server is not running
+
+Backup using copying the data dir - simply copy the dbpath
+
+Monitoring
+-----------
+db.serverStatus()
+db.runCommand( { serverStatus: 1, workingSet: 1, metrics: 0, locks: 0 } )
+
+db.stats()
+--------
+db
+Contains the name of the database.
+
+collections
+Contains a count of the number of collections in that database.
+
+objects
+Contains a count of the number of objects (i.e. documents) in the database across all collections.
+
+avgObjSize
+The average size of each document in bytes. This is the dataSize divided by the number of documents.
+
+dataSize
+The total size in bytes of the data held in this database including the padding factor. The scale argument affects this value. 
+The dataSize will not decrease when documents shrink, but will decrease when you remove documents.
+
+storageSize
+The total amount of space in bytes allocated to collections in this database for document storage. 
+The scale argument affects this value. The storageSize does not decrease as you remove or shrink documents.
+
+numExtents
+Contains a count of the number of extents in the database across all collections.
+
+indexes
+Contains a count of the total number of indexes across all collections in the database.
+
+indexSize
+The total size in bytes of all indexes created on this database. The scale arguments affects this value.
+
+fileSize
+The total size in bytes of the data files that hold the database. This value includes preallocated space and the padding factor. 
+The value of fileSize only reflects the size of the data files for the database and not the namespace file.
+
+dbStats.nsSizeMB
+The total size of the namespace files (i.e. that end with .ns) for this database. You cannot change the size of the namespace file after creating a database, 
+but you can change the default size for all new namespace files with the nsSize runtime option.
+
+dataFileVersion
+Document that contains information about the on-disk format of the data files for the database.
+
+dbStats.dataFileVersion.major
+The major version number for the on-disk format of the data files for the database.
+
+dbStats.dataFileVersion.minor
+The minor version number for the on-disk format of the data files for the database
+
+
+collstats
+---------
+
+> db.users.stats()
+{
+        "ns" : "app.users",             // namespace
+        "count" : 9,                    // number of documents
+        "size" : 432,                   // collection size in bytes
+        "avgObjSize" : 48,              // average object size in bytes
+        "storageSize" : 3840,           // (pre)allocated space for the collection in bytes
+        "numExtents" : 1,               // number of extents (contiguously allocated chunks of datafile space)
+        "nindexes" : 2,                 // number of indexes
+        "lastExtentSize" : 3840,        // size of the most recently created extent in bytes
+        "paddingFactor" : 1,            // padding can speed up updates if documents grow
+        "flags" : 1,
+        "totalIndexSize" : 16384,       // total index size in bytes
+        "indexSizes" : {                // size of specific indexes in bytes
+                "_id_" : 8192,
+                "username" : 8192
+        },
+        "ok" : 1
+}
+
+
+mongostat
+---------
+mongostat.exe
+
+mongotop
+--------
+mongotop.exe
+
+Rest/Http
+
+DB Profile
+----------
+profile level
+0 - collects no data; profiler is off
+1 - collects profiling data for slow operations only. By default slow operations are those slower than 100
+milliseconds.
+2 - collects profiling data for all database operations.
+
+db.setProfilingLevel(2)
+db.getProfilingStatus()
+db.setProfilingLevel(1,200)
+
+set profile level for entire mongod
+------------------------------------
+mongod --profile 1 --slowms 50
+
+
+
+find slow queries
+-------------------
+db.system.profile.find().pretty()
+db.system.profile.find( { op: { $ne : 'command' } } ).pretty()
+db.system.profile.find().limit(10).sort( { ts : -1 } ).pretty()
+db.system.profile.find( { ns : 'mydb.test' } ).pretty()
+db.system.profile.find( { millis : { $gt : 5 } } ).pretty()
+
+show profile
+
+
+Export/Import
+-------------
+mongoexport.exe --collection class --db foo -o D:\Rana2\class.json
+mongoexport.exe --collection class --db foo --csv -f _id,name,age,subject -o D:\Rana2\class.csv
+
+mongoimport.exe --db test --collection class < D:\Rana2\class.json
+
+db.categories.find( { path: /^,Books,/ } )
+
+Explain Plan
+---------------
+> db.class.find().explain()
+{
+        "cursor" : "BasicCursor", -- whether it uses any index
+        "isMultiKey" : false, -- true if uses a multi key index
+        "n" : 30, -- number of documents that match the query selection criteria
+        "nscannedObjects" : 30, -- total number of documents scanned.
+        "nscanned" : 30, -- total number of index entries scanned (or documents for a collection scan)
+        "nscannedObjectsAllPlans" : 30, -- number that reflects the total number of documents scanned for all query plans during the database operation.
+        "nscannedAllPlans" : 30, -- number that reflects the total number of documents or index entries scanned for all query plans during the database operation
+        "scanAndOrder" : false, -- true when the query cannot use the order of documents in the index for returning sorted results: 
+								-- MongoDB must sort the documents after it receives the documents from a cursor.
+        "indexOnly" : false, -- all the fields in the query are part of that index
+        "nYields" : 0, -- reflects the number of times this query yielded the read lock to allow waiting writes to execute.
+        "nChunkSkips" : 0, --  reflects the number of documents skipped because of active chunk migrations in a sharded system. 
+							Typically this will be zero. A number greater than zero is ok, but indicates a little bit of inefficiency
+        "millis" : 0, -- reflects the time in milliseconds to complete the query
+        "server" : "BLRTCHAKR45477:27017",
+        "filterSet" : false -- indicates whether MongoDB applied an index filter for the query
+}
+>
+
+
+Capped Collection
+----------------
+-- create a capped collection
+db.createCollection( "log", { capped: true, size: 100000 } ) 
+-- create a capped collection specifying max no of docs
+db.createCollection("log", { capped : true, size : 5242880, max : 5000 } ) 
+
+-- query a capped collection in the reverse insertion order
+db.cappedCollection.find().sort( { $natural: -1 } )
+
+--check if a collection is capped
+db.collection.isCapped()
+
+-- convert a collection to capped
+db.runCommand({"convertToCapped": "log", size: 100000});
+
+
+Expire Data on TTL
+------------------
+
+- create an TTL index on a BSON date-type field
+- specify a non zero value in expireAfterSeconds field
+- document will be deleted after the specified time
+- mongodb runs a thread every 60 sec to delete the docs from the data file
+
+db.log_events.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 3600 } )
+
+db.log_events.insert( {
+	"createdAt": new Date(),
+	"logEvent": 2,
+	"logMessage": "Success!"
+} )
+
+-- to set expirtion at specific clock time
+db.log_events.ensureIndex( { "expireAt": 1 }, { expireAfterSeconds: 0 } )
+
+db.log_events.insert( {
+	"expireAt": new Date('July 22, 2013 14:00:00'),
+	"logEvent": 2,
+	"logMessage": "Success!"
+} )
+
+
+Optimization Strategies
+-----------------------
+
+Evaluate Performance of Current Operations - db.currentOp(), DB profiling, explain()
+Optimize Query Performance - index, projection, hint, $inc, 
+Design Note 
+- all the data modeling concepts and patterns,
+- GriFS for large
+- proper shard key
+- single atomic transaction
+- odd number of replica set
+
+Log Rotation
+------------
+Start mongod with logappend
+mongod -v --logpath /var/log/mongodb/server1.log --logappend 
+
+Open mongo shell:
+use admin
+db.runCommand( {	 logRotate : 1 } )
+
+Backup and restore with fsyncLock and fsyncUnlock
+-------------------------------------------------
+db.fsyncLock() -- lock all the writes temporarily to the disk
+mongodump -- generate the bson dump
+db.fsyncUnlock() -- unlock all the writes
+
+Recover from unexpected shutdown
+--------------------------------
+Journaling Enabled
+Replica Set
+
+If above two are not there:
+1. Start mongod using --repair to read the existing data files.
+mongod --dbpath /data/db --repair --repairpath /data/db0
+When this completes, the new repaired data files will be in the /data/db0 directory.
+2. Start mongod using the following invocation to point the dbPath at /data/db0:
+mongod --dbpath /data/db0
+
+
+
+
+ObjectId is a 12-byte BSON type, constructed using:
+• a 4-byte value representing the seconds since the Unix epoch,
+• a 3-byte machine identifier,
+• a 2-byte process id, and
+• a 3-byte counter, starting with a random value.
