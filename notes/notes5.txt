@@ -1,0 +1,64 @@
+Write Concern - at the DB level
+-------------------------------
+ db.getWriteConcern()
+ db.setWriteConcern({w : 0})
+ db.unsetWriteConcern({w : 0})
+
+Modify Default Write Concern
+----------------------------
+cfg = rs.conf()
+cfg.settings = {}
+cfg.settings.getLastErrorDefaults = { w: "majority", wtimeout: 5000 }
+rs.reconfig(cfg)
+ 
+Read Preference
+---------------
+db.collection.find().readPref( { mode: 'nearest' } )
+db.getMongo().setReadPref('primaryPreferred')
+
+primary  - Default mode. All operations read from the current replica set primary.
+primaryPreferred - In most situations, operations read from the primary but if it is unavailable, operations
+read from secondary members.
+secondary - All operations read from the secondary members of the replica set.
+secondaryPreferred - In most situations, operations read from secondary members but if no secondary
+members are available, operations read from the primary.
+nearest - Operations read from member of the replica set with the least network latency,
+irrespective of the member’s type.
+
+
+
+Heartbeat
+---------
+Replica set members send heartbeats (pings) to each other every two seconds. If a heartbeat does not
+return within 10 seconds, the other members mark the delinquent member as inaccessible.
+
+
+Change the oplog size
+---------------------
+Restart a Secondary in Standalone Mode on a Different Port Shut down the mongod instance for one of the
+non-primary members of your replica set. For example, to shut down, use the db.shutdownServer() method:
+db.shutdownServer()
+Restart this mongod as a standalone instance running on a different port and without the --replSet parameter. Use
+a command similar to the following:
+mongod --port 37017 --dbpath /srv/mongodb
+Create a Backup of the Oplog (Optional) Optionally, backup the existing oplog on the standalone instance, as in
+the following example:
+mongodump --db local --collection 'oplog.rs' --port 37017
+
+Recreate the Oplog with a New Size and a Seed Entry
+use local
+db.temp.drop()
+db.temp.save( db.oplog.rs.find( { }, { ts: 1, h: 1 } ).sort( {$natural : -1} ).limit(1).next() )
+
+Delete exisitng oplog
+db.oplog.rs.drop()
+
+Create new oplog
+db.runCommand( { create: "oplog.rs", capped: true, size: (2 * 1024 * 1024 * 1024) } )
+
+Insert the Last Entry of the Old Oplog into the New Oplog
+db.oplog.rs.save( db.temp.findOne() )
+
+Restart
+mongod --replSet rs0 --dbpath /srv/mongodb
+
