@@ -1,0 +1,29 @@
+-- configure replicaset
+ db = connect('localhost:30001/test');
+ print('connected to localhost:30001');
+ rs.initiate();
+ rs.add("BLRTCHAKR45477:30002");
+ rs.addArb("BLRTCHAKR45477:30003");
+ 
+ db = connect('localhost:30004/test');
+ rs.initiate();
+ rs.add("BLRTCHAKR45477:30005");
+ rs.addArb("BLRTCHAKR45477:30006");
+ 
+-- start mongos 
+mongos.exe --install --serviceName Mongos --serviceDisplayName Mongos --logpath D:\Rana2\custom_log\mongos.log --logappend --configdb BLRTCHAKR45477:30011,BLRTCHAKR45477:30012,BLRTCHAKR45477:30013
+net start Mongos
+
+-- configure shard
+ sh.addShard("rsEdureka1/BLRTCHAKR45477:30001,BLRTCHAKR45477:30002,BLRTCHAKR45477:30003")
+ sh.addShard("rsEdureka2/BLRTCHAKR45477:30004,BLRTCHAKR45477:30005,BLRTCHAKR45477:30006")
+ sh.enableSharding("shrd")
+ use shrd
+ db.foo.ensureIndex({userId : 1})
+ sh.shardCollection("shrd.foo", {userId : 1})
+ for(var i=0; i<10000; i++) {db.foo.insert({name : 'name-'+i, userId : i})}
+ db.foo.findOne()
+ db.foo.find({name : "name-1000"}).pretty()
+ db.foo.find({name : "name-1000"}).explain()
+ db.foo.find({userId : 1000})
+ db.foo.find({userId : 1000}).explain()

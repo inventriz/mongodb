@@ -1,0 +1,10 @@
+net stop Mongos
+net stop MongoDB1
+net stop MongoDB2
+net stop MongoDB3
+net stop MongoDB4
+net stop MongoDB5
+net stop MongoDB6
+net stop MongoDBConfig1
+net stop MongoDBConfig2
+net stop MongoDBConfig3
