@@ -1,0 +1,357 @@
+Index Creation
+--------------
+-- unique indexes
+db.members.ensureIndex( { "user_id": 1 }, { unique: true } )
+By default, unique is false on MongoDB indexes.
+
+-- sparse index
+db.addresses.ensureIndex( { "xmpp_id": 1 }, { sparse: true } )
+
+-- hashed index
+db.collection.ensureIndex( { _id: "hashed" } )
+MongoDB supports hashed indexes of any single field. The hashing function collapses sub-documents and computes
+the hash for the entire value, but does not support multi-key (i.e. arrays) indexes.
+
+-- create index in background
+db.people.ensureIndex( { zipcode: 1}, {background: true} )
+By default, background is false for building MongoDB indexes.
+
+db.people.ensureIndex( { zipcode: 1}, {background: true, sparse: true } )
+
+-- drop duplicate
+db.accounts.ensureIndex( { username: 1 }, { unique: true, dropDups: true } )
+
+-- index name
+db.products.ensureIndex( { item: 1, quantity: -1 } , { name: "inventory" } )
+
+-- create old style index version 1.8
+db.items.dropIndex( { name : 1 } )
+db.foo.ensureIndex( { name : 1 } , { v : 0 } )
+
+-- remove index
+db.accounts.dropIndex( { "tax-id": 1 } )
+-- remove all indexes
+db.accounts.dropIndexes()
+
+-- rebuild index
+db.accounts.reIndex()
+
+-- manage in-progress index 
+db.currentOp()
+db.killOp()
+
+-- return list of all indexes
+db.system.indexes.find()
+-- return list of indexes of a collection
+db.people.getIndexes()
+
+-- measure index use
+use explain()
+db.people.find( { name: "John Doe", zipcode: { $gt: "63000" } } } ).explain()
+use hint()
+db.people.find( { name: "John Doe", zipcode: { $gt: "63000" } } } ).hint( { zipcode: 1 } )
+db.serverStatus()
+db.stats()
+db.collection.stats()
+
+
+
+Geospatial Index - GeoJson
+----------------
+Point - { loc: { type: "Point", coordinates: [ 40, 5 ] } }
+LineString - { loc: { type: "LineString", coordinates: [ [ 40, 5 ], [ 41, 6 ] ] } }
+Polygon - 
+{
+	loc :
+		{
+			type: "Polygon",
+			coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [4 , 5] ,[ 0 , 0 ] ] ]
+		}
+}
+
+Multipoint - 
+{ loc: {
+		type: "MultiPoint",
+		coordinates: [
+			[ -73.9580, 40.8003 ],
+			[ -73.9498, 40.7968 ],
+			[ -73.9737, 40.7648 ],
+			[ -73.9814, 40.7681 ]
+		]
+	}
+}
+MultiLineString - 
+{ loc:
+	{
+		type: "MultiLineString",
+		coordinates: [
+			[ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
+			[ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
+			[ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
+			[ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ]
+		]
+	}
+}
+
+GeometryCollection -
+{ loc:
+	{
+	type: "GeometryCollection",
+	geometries: [
+		{
+			type: "MultiPoint",
+			coordinates: [
+				[ -73.9580, 40.8003 ],
+				[ -73.9498, 40.7968 ],
+				[ -73.9737, 40.7648 ],
+				[ -73.9814, 40.7681 ]
+			]
+		},
+		{
+			type: "MultiLineString",
+			coordinates: [
+				[ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
+				[ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
+				[ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
+				[ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ]
+			]
+		}
+	]
+	}
+}
+
+2dsphere Index
+--------------
+db.places.insert(
+	{
+		loc : { type: "Point", coordinates: [ -73.97, 40.77 ] },
+		name: "Central Park",
+		category : "Parks"
+	}
+)
+
+db.places.insert(
+	{
+		loc : { type: "Point", coordinates: [ -73.88, 40.78 ] },
+		name: "La Guardia Airport",
+		category : "Airport"
+	}
+)
+
+db.places.insert(
+	{
+		loc : { type: "Point", coordinates: [ -70, 43 ] },
+		name: "Eliot Park",
+		category : "Park"
+	}
+)
+
+
+db.places.insert(
+	{
+		loc : { type: "Point", coordinates: [ -67, 39 ] },
+		name: "Fortis",
+		category : "Hospital"
+	}
+)
+
+
+db.places.ensureIndex( { loc : "2dsphere" } )
+
+-- within a polygon
+db.places.find( { loc :
+	{ $geoWithin :
+		{ $geometry :
+			{ 
+				type : "Polygon" ,
+				coordinates : [ [
+					[ 0 , -75 ] ,
+					[ -75 , 41 ] ,
+					[ 6 , 1 ] ,
+					[ 0 , -75 ]
+				] ]
+			} 
+		} 
+	} 
+} )
+
+-- proximity to a point
+db.places.find( 
+	{ 
+		<location field> :
+		{ $near :
+			{ 
+			$geometry :
+				{ 
+				type : "Point" ,
+				coordinates : [ longitude, latitude ] 
+				} ,
+				$maxDistance : <distance in meters>
+			} 
+		} 
+	} 
+)
+
+db.places.find( 
+	{ 
+		loc :
+		{ $near :
+			{ 
+			$geometry :
+				{ 
+				type : "Point" ,
+				coordinates : [ -70, 42.9 ] 
+				} ,
+				$maxDistance : 100000
+			} 
+		} 
+	} 
+)
+
+-- points within a circle
+db.places.find( 
+	{ 
+		loc :
+		{ $geoWithin :
+			{ $centerSphere :
+			[ [ x , y ] , radius ]
+			} 
+		} 
+	} 
+)
+
+The following example queries grid coordinates and returns all documents within a 400 mile radius of longitude -66 W
+and latitude 39 N. The example converts the distance, 10 miles, to radians by dividing by the approximate radius of
+the earth, 3959 miles:
+
+db.places.find( {  loc : { $geoWithin : { $centerSphere : [ [ -66 , 39 ] , 400/3959 ] }  }  }  )
+
+2d index creation
+-----------------
+By default, a 2d index assumes longitude and latitude and has boundaries of -180 inclusive and 180 non-inclusive
+(i.e. [ -180 , 180 )). If documents contain coordinate data outside of the specified range, MongoDB returns an
+error.
+
+db.collection.ensureIndex( { <location field> : "2d" } ,{ min : <lower bound> , max : <upper bound> } )
+
+Points within a Shape Defined on a Flat Surface
+-----------------------------------------------
+To select all legacy coordinate pairs found within a given shape on a flat surface, use the $geoWithin operator along
+with a shape operator. Use the following syntax:
+
+db.<collection>.find( 
+	{ 
+	<location field> :
+	{ $geoWithin :
+	{ $box|$polygon|$center : <coordinates>
+	} } 
+	} 
+)
+The following queries for documents within a rectangle defined by [ 0 , 0 ] at the bottom left corner and by [
+100 , 100 ] at the top right corner.
+db.coord.find( { loc :
+	{ 
+		$geoWithin :
+		{ $box : [ [ 0 , 0 ] ,
+				[ 100 , 100 ] ]
+		} 
+	} 
+	} 
+)
+
+The following queries for documents that are within the circle centered on [ -74 , 40.74 ] and with a radius of
+10:
+db.places.find( { loc: 
+	{ $geoWithin :
+		{ $center : [ [-74, 40.74 ] , 10 ]
+		} 
+	} 
+})
+
+-- proximity to a point on a flat surface
+db.<collection>.find( { <location field> :
+	{ $near : [ <x> , <y> ]
+	} 
+} )
+
+db.place.find( { loc :
+	{ $near : [ 3 , 5 ]
+	} 
+} )
+
+or
+db.runCommand( { geoNear: <collection>, near: [ <x> , <y> ] } )
+
+-- exact match
+db.<collection>.find( { <location field>: [ <x> , <y> ] } )
+
+GeoHaystack Index
+-----------------
+{ _id : 100, pos: { lng : 126.9, lat : 35.2 } , type : "restaurant"}
+{ _id : 200, pos: { lng : 127.5, lat : 36.1 } , type : "restaurant"}
+{ _id : 300, pos: { lng : 128.0, lat : 36.7 } , type : "national park"}
+
+The following operations create a haystack index with buckets that store keys within 1 unit of longitude or latitude.
+db.places.ensureIndex( { pos : "geoHaystack", type : 1 } ,{ bucketSize : 1 } )
+
+To query a haystack index, use the geoSearch command. You must specify both the coordinates and the additional
+field to geoSearch. For example, to return all documents with the value restaurant in the type field near the
+example point, the command would resemble:
+
+db.runCommand( { geoSearch : "places" ,
+				search : { type: "restaurant" } ,
+				near : [-74, 40.74] ,
+				maxDistance : 10 } 
+			)
+
+
+Calculate Distance
+------------------			
+The following query would return documents from the places collection within the circle described by the center 
+[-74, 40.74 ] with a radius of 100 miles:
+
+db.places.find( { loc: { $geoWithin: { $centerSphere: [ [ -74, 40.74 ] ,100 / 3959 ] } } } )
+
+db.runCommand( { geoNear: "places",near: [ -74, 40.74 ],spherical: true} ) - distance in raidans
+db.runCommand( { geoNear: "places",near: [ -74, 40.74 ],spherical: true, distanceMultiplier: 3959} ) - distance in miles
+
+
+Create Text Index
+-----------------
+db.collection.ensureIndex({subject: "text"})
+
+Search string content for text
+-----------------------------
+db.inventory.find( { dept: "kitchen", $text: { $search: "green" } } )
+
+Specify a language for text index
+--------------------------------
+Default language is english.
+db.quotes.ensureIndex({ content : "text" },{ default_language: "spanish" })
+
+Create Index with name
+----------------------
+db.collection.ensureIndex({subject: "text"}, {name : "SubjectIndex"})
+
+Control Search with weight
+--------------------------
+db.blog.ensureIndex(
+	{
+		content: "text",
+		keywords: "text",
+		about: "text"
+	},
+	{
+	weights: {
+		content: 10,
+		keywords: 5,
+	},
+	name: "TextIndex"
+	}
+)
+
+
+
+
+
+
