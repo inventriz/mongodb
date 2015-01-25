@@ -1,7 +1,3 @@
----
-layout: studio
----
-
 ## Deploy a MongoDB Sharded Cluster
 
 These scripts will help you to deploy a sharded cluster in windows.
@@ -9,14 +5,14 @@ These scripts will help you to deploy a sharded cluster in windows.
 ### Configuration
 
 The cluster has :
-1 Mongos
-3 Config DBs
-2 Shards
+	- 1 Mongos,
+	- 3 Config DBs,
+	- 2 Shards
 
 Each shard is a replica set with 3 nodes each
-1 Primary
-1 secondary
-1 arbiter
+	- 1 Primary,
+	- 1 secondary,
+	- 1 arbiter
 
 ### Instructions
 
