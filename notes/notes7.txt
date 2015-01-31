@@ -1,0 +1,507 @@
+$geoWithin - Selects geometries within a bounding GeoJSON geometry.
+$geoIntersects - Selects geometries that intersect with a GeoJSON geometry.
+$near - Returns geospatial objects in proximity to a point.
+$nearSphere - Returns geospatial objects in proximity to a point on a sphere.
+$geometry - Specifies a geometry in GeoJSON format to geospatial query operators.
+$maxDistance - Specifies a distance to limit the results of $near and $nearSphere queries.
+$center - Specifies a circle using legacy coordinate pairs to $geoWithin queries when using planar geometry.
+$centerSphere - Specifies a circle using either legacy coordinate pairs or GeoJSON format for $geoWithin queries when using spherical geometry.
+$box - Specifies a rectangular box using legacy coordinate pairs for $geoWithin queries.
+$polygon - Specifies a polygon to using legacy coordinate pairs for $geoWithin queries.
+
+{ "_id" : ObjectId("53a9cc3cde59b108860f9c0f"), "loc" : [ 1, 2 ] }
+{ "_id" : ObjectId("53a9cc4bde59b108860f9c10"), "loc" : [ 1, 1 ] }
+{ "_id" : ObjectId("53a9cc78de59b108860f9c11"), "loc" : [ 1, 3 ] }
+{ "_id" : ObjectId("53a9cc85de59b108860f9c12"), "loc" : [ 2, 1 ] }
+{ "_id" : ObjectId("53a9cc94de59b108860f9c13"), "loc" : [ 0, 0 ] }
+{ "_id" : ObjectId("53a9cc9ede59b108860f9c14"), "loc" : [ 5, 5 ] }
+
+Find how many points are within the following polygon (triangle)
+db.coord.find( { loc :
+                  { $geoWithin :
+                    { $geometry :
+                      { type : "Polygon" ,
+                        coordinates: [ [ [ 0 , 0 ] , [ 0 , 4 ] , [ 4 , 4 ] , [ 0 , 0 ] ] ]
+                } } } } )
+
+
+db.coord.find( { loc :
+					 { $geoWithin :
+						{ $box : [ [ 0 , 0 ] ,
+								[ 100 , 100 ] ]
+				  } } } )
+
+db.coord.find( { loc: { $geoWithin :
+                          { $center : [ [2, 2], 1 ] }
+                } } )
+
+db.coord.find( { loc : { $geoWithin :
+                           { $centerSphere :
+                             [ [ 0 , 0 ] , 100 / 3959 ]
+                } } } )				
+				
+db.coord.find(
+   {
+     loc:
+       { $near :
+          {
+            $geometry : { type : "Point" , coordinates: [ 2 , 3 ] }
+          }
+       }
+   }
+)
+
+db.coord.find(
+   {
+     loc:
+       { $near :
+          {
+            $geometry : { type : "Point" , coordinates: [ 0 , 0 ] },
+            $maxDistance : 500
+          }
+       }
+   }
+)
+For legacy coordinate system:
+Create 2d index
+---------------
+db.coord.find( { loc :  {$near : [ 6 , 6 ] } })
+db.coord.find( { loc : { $near : [ 100 , 100 ] ,
+                          $maxDistance: 10 }
+                } )
+
+db.runCommand( { geoNear: coord, near: [ 2,2 ] } )
+db.runCommand( { geoNear: <collection>, near: [ x, y ], maxDistance: <distance> } )
+db.collection.find( { <location field>: { $near: [ x, y ] } } ).limit(<n>)
+
+Circle
+------
+db.collection.find( { "field": { "$within": { "$center": [ center, radius ] } } } )
+
+db.places.find( { "loc": { "$within":
+                            { "$center": [ [-74, 40.74], 10 ] }
+                         }
+                } )
+db.places.find( { "loc": { "$within": { "$box": [ [0, 0] , [3, 3] ] } } } )
+db.places.find({ "loc": { "$within": { "$polygon":
+                                     [ [ 0,0], [3,3], [6,0] ] } } } )
+
+									 
+									 
+----------------------------------------------------------------------
+
+MongoDB Tools and usage
+-----------------------
+-- read bson data
+bsondump data/db/auditLog.bson
+
+-- load oplog from one server to another
+mongooplog  --from mongodb0.example.net --host mongodb1.example.net
+
+-- mongoperf
+mongoperf < jsonconfigfile
+
+{
+  nThreads:16, // number of threads to run the test
+  fileSizeMB:1, // test file size
+  mmf : false, // set to true if want to test memory mapped files
+  sleepMicros : 0, // mongoperf will pause for the number of specified sleepMicros divided by the nThreads between each operation
+  r:true, // to include read operation in the test
+  w:true, // to include write operation in the test
+  recSizeKB:4, // byte size of each write operation
+  syncDelay: 0 // Seconds between disk flushes. mongoperf.syncDelay is similar to --syncdelay for mongod.
+  //Only use syncDelay in conjunction with mmf set to true
+}
+
+-- mongofiles and GridFS
+mongofiles <options> <commands> <filename>
+
+-- to load files using GridFS
+mongofiles.exe -d record put mongodb-limits-and-thresholds.pdf
+
+mongofiles.exe -d record put limitation.pdf -l "D:\Rana2\02. Edureka\MongoDB\Class7\mongodb-limits-and-thresholds.pdf"
+
+-- to list the saved files
+mongofiles.exe -d record list
+
+-- to get the file
+mongofiles.exe -d record -l D:\Rana2\mongodb.pdf get mongodb.pdf
+
+-- to search
+mongofiles -d record search corinth
+
+fs.chunks - actual binary data
+fs.files - metadata
+
+----------------------------------------------------------------------
+HTTP Interface
+--------------
+To get the contents of a collection (note the trailing slash):
+http://127.0.0.1:28017/databaseName/collectionName/
+
+To add a limit:
+http://127.0.0.1:28017/databaseName/collectionName/?limit=-10
+
+To skip:
+http://127.0.0.1:28017/databaseName/collectionName/?skip=5
+
+To query for {a : 1}:
+http://127.0.0.1:28017/databaseName/collectionName/?filter_a=1
+
+Separate conditions with an &:
+http://127.0.0.1:28017/databaseName/collectionName/?filter_a=1&limit=-10
+
+Same as db.$cmd.findOne({listDatabase:1}) on the admin database in the shell:
+http://localhost:28017/admin/$cmd/?filter_listDatabases=1&limit=1
+
+To count documents in a collection:
+http://host:port/db/$cmd/?filter_count=collection&limit=1
+
+----------------------------------------------------------------------
+
+Security
+--------
+Network Exposure and Security : --nohttpinterface --bind_ip --port
+mongod.exe --dbpath D:\Rana2\sec_data --auth
+
+
+Add a user in a database
+------------------------
+-- Create the system user administrator
+
+use admin
+db.createUser(
+{
+	user: "siteUserAdmin",
+	pwd: "password",
+	roles: [{
+		role: "userAdminAnyDatabase",
+		db: "admin"
+	}]
+}
+)
+
+-- Create a user administrator for a single database
+use reporting
+db.createUser(
+{
+	user: "reportsUserAdmin",
+	pwd: "password",
+	roles: [{
+		role: "userAdmin",
+		db: "reporting"
+	}]
+}
+)
+
+-- Verify privilege
+db.runCommand(
+{
+	usersInfo: "recordsUserAdmin",
+	showPrivileges: true
+}
+)
+
+-- Create the new user
+use reporting
+db.createUser(
+{
+	user: "reportsUser",
+	pwd: "12345678",
+	roles: [{
+		role: "read",db: "reporting"
+	}]
+}
+)
+
+use reporting
+db.createUser(
+{
+	user: "reportsUser",
+	pwd: "12345678",
+	roles: [{
+		role: "read",db: "reporting"
+	},
+	{
+		role: "read",db: "products"
+	},
+	{
+		role: "read",db: "sales"
+	}]
+}
+)
+
+--Create the administrative user with unrestricted access
+use admin
+db.createUser(
+{
+	user: "superuser",
+	pwd: "12345678",
+	roles: ["root"]
+}
+)
+
+Create a Role
+-------------
+-- Define the privileges to grant to the role
+	
+-- Check whether an existing role provides the privileges
+db.runCommand( { rolesInfo: 1, showPrivileges: 1 } )
+
+-- create role
+
+use admin
+db.auth("siteUserAdmin","password")
+db.createRole({
+	role: "myRole",
+	privileges: [{
+		resource: {
+			db: "reporting",
+			collection: ""
+		},
+		actions: ["find"]
+	}],
+	roles: [{
+		role: "read",
+		db: "reporting"
+	}]
+})
+
+------------
+use admin
+db.createRole(
+{
+	role: "myClusterwideAdmin",
+	privileges: [{
+		resource: {
+			cluster: true
+		},
+		actions: ["addShard"]
+	},
+	{
+		resource: {
+			db: "config",
+			collection: ""
+		},
+		actions: ["find","update","insert"]
+	},
+	{
+		resource: {
+			db: "users",
+			collection: "usersCollection"
+		},
+		actions: ["update"]
+	},
+	{
+		resource: {
+			db: "",
+			collection: ""
+		},
+		actions: ["find"]
+	}],
+	roles: [{
+		role: "read",
+		db: "admin"
+	}],
+	writeConcern: {
+		w: "majority",
+		wtimeout: 5000
+	}
+}
+)
+db.getRole( "myRole", { showPrivileges: true } )
+-- Grant a role to a user
+use admin
+db.grantRolesToUser(
+	"reportsUser",
+	[{
+		role: "myRole",
+		db: "reporting"
+	}]
+)
+
+-- Identify the user’s roles
+use reporting
+db.getUser("reportsUser")
+
+
+Modify the user’s access
+------------------------
+-- revoke a role
+use reporting
+db.revokeRolesFromUser(
+"reportsUser",
+	[{
+		role: "read",
+		db: "reporting"
+	}]
+)
+
+
+-- view roles in the current DB
+db.runCommand({ rolesInfo: "read" })
+-- view roles in other DB
+db.runCommand({ rolesInfo: { role: "myRole", db: "admin" } })
+
+-- view all custom roles
+db = db.getSiblingDB('admin')
+db.system.roles.find()
+
+-- Change the password
+db.changeUserPassword("reporting", "SOh3TbYhxuLiW8ypJPxmt1oOfL")
+
+-- drop all users
+db.dropAllUsers()
+
+-- drop a specific user
+db.dropUser("username")
+
+Built-in roles
+--------------
+read
+----
+Provides the ability to read data on all non-system collections and on the following system collections:
+system.indexes, system.js , and system.namespaces collections.
+Actions::
+collStats 
+dbStats 
+find 
+
+readWrite
+---------
+collStats 
+convertToCapped 
+createCollection 
+dbStats 
+dropCollection 
+createIndex 
+dropIndex 
+find 
+insert
+remove 
+update 
+
+dbAdmin
+-------
+Provides the following actions on the database’s system.indexes, system.namespaces , and system.profile collections:
+
+collStats
+dbHash 
+dbStats
+find 
+killCursors
+dropCollection on system.profile only
+
+Provides the following actions on all non-system collections. This role does not include full read access on
+non-system collections:
+collMod
+collStats 
+compact 
+convertToCapped 
+createCollection
+createIndex 
+dbStats 
+dropCollection
+dropDatabase 
+dropIndex 
+enableProfiler 
+indexStats 
+reIndex 
+renameCollectionSameDB 
+repairDatabase 
+storageDetails 
+validate
+
+dbOwner
+-------
+readWrite + dbAdmin + userAdmin
+
+userAdmin
+---------
+Provides the ability to create and modify roles and users on the current database.
+The userAdmin role explicitly provides the following actions:
+
+changeCustomData 
+changePassword 
+createRole 
+createUser 
+dropRole 
+dropUser 
+grantRole 
+revokeRole 
+viewRole 
+viewUser 
+
+readAnyDatabase
+---------------
+read + listDatabases
+
+readWriteAnyDatabase
+--------------------
+readWrite + listDatabases
+
+userAdminAnyDatabase
+--------------------
+userAdmin for all dbs + listDatabases
+
+dbAdminAnyDatabase
+------------------
+dbAdmin + listDatabases
+
+-- to any user any privilege
+• dbOwner role, when scoped to the admin database
+• userAdmin role, when scoped to the admin database
+• userAdminAnyDatabase role
+
+-- full privilege for all resources
+root
+----
+readWriteAnyDatabase + dbAdminAnyDatabase + userAdminAnyDatabase
+
+
+Auditing (New in version 2.6)
+-----------------------------
+-- Enable and Configure Audit Output
+mongod --dbpath data/db --auditDestination console
+mongod --dbpath data/db --auditDestination syslog
+mongod --dbpath data/db --auditDestination file --auditFormat JSON --auditPath data/db/auditLog.json
+
+-- Filter Events
+mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: "createCollection" }' --console
+mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: { $in: [ "createCollection", "dropCollection"]}}' --console
+mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: "authenticate", "param.db": "admin" }' --console
+
+Audit Events
+------------
+authenticate - "param.db": <db>
+createCollection - { ns: <database>.<collection> }
+createDatabase - { ns: <database> }
+createIndex - {ns : <database>.<collection>, indexName : <index name>}
+dropCollection - { ns: <database>.<collection> }
+dropDatabase - { ns: <database> }
+dropIndex - {ns : <database>.<collection>, indexName : <index name>}
+createUser - {user: <user name>,db: <database>}
+dropUser - {user: <user name>,db: <database>}
+dropAllUsersFromDatabase - {db: <database>}
+updateUser - {user: <user name>,db: <database>}
+grantRolesToUser - {user: <user name>,db: <database>}
+revokeRolesFromUser - {user: <user name>,db: <database>}
+
+Report Vulnerability
+--------------------
+Submit a ticket in the Security41 project at: <http://jira.mongodb.org/browse>.
+
+All vulnerability reports should contain as much information as possible so MongoDB’s developers can move quickly
+to resolve the issue. In particular, please include the following:
+ The name of the product.
+ Common Vulnerability information, if applicable, including:
+ CVSS (Common Vulnerability Scoring System) Score.
+ CVE (Common Vulnerability and Exposures) Identifier.
+ Contact information, including an email address and/or phone number, if applicable
+
+While JIRA is the preferred reporting method, you may also report vulnerabilities via email to security@mongodb.com.
+
+Sending MongoDB query result to a file
+--------------------------------------
+mongo localhost/mydb –eval "db.docs.count()" >> counttest.txt
+mongo localhost/mydb –eval "printjson(db.docs.count())" >> count.json
