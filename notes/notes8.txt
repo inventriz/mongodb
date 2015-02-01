@@ -1,0 +1,110 @@
+For testing purposes, you can generate a self-signed certificate and private key on a 
+Unix system with a command that resembles the following:
+cd /etc/ssl/
+openssl req -new -x509 -days 365 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key
+
+This operation generates a new, self-signed certificate with no passphrase that is valid for 365 days. 
+Once you have the certificate, concatenate the certificate and private key to a .pem file, 
+as in the following example:
+cat mongodb-cert.key mongodb-cert.crt > mongodb.pem
+
+given an SSL certificate located at /etc/ssl/mongodb.pem, configure mongod to use SSL encryption 
+for all connections with the following command:
+mongod --sslMode requireSSL --sslPEMKeyFile /etc/ssl/mongodb.pem
+
+To connect to a mongod or mongos instance that requires only a SSL encryption mode, 
+start mongo shell with --ssl, as in the following:
+
+mongo --ssl
+
+To connect to a mongod or mongos that requires CA-signed client certificates, 
+start the mongo shell with --ssl and the --sslPEMKeyFile option to specify the signed certificate-key file, 
+as in the following:
+mongo --ssl --sslPEMKeyFile /etc/ssl/client.pem
+
+Jasper Query
+------------
+-- Select all
+{
+    'collectionName' : 'accounts'
+}
+
+-- Specify the fields returned and sort the results
+{
+    'collectionName' : 'accounts',
+    'findFields' : {
+        'name':1,
+		'address.zip':1,
+        'phone_office':1,
+        'billing_address_city':1,
+        'billing_address_street':1,
+        'billing_address_country':1
+    },
+    'sort' : {
+        'billing_address_country':-1,
+        'billing_address_city':1
+    }
+}
+
+-- Filtered and parameterized
+{
+     'collectionName' : 'accounts',
+     'findQuery' : {
+          'status_date' : { '$gte' : $P{StartDate}, $lt: $P{EndDate} },
+          'name' : { '$regex' : '^N', '$options' : '' }
+ 
+      }
+}
+
+-- $in clause
+{
+    'collectionName' : 'customers',
+     'findQuery' : { 'industry' : { '$in' : ['Communications','Engineering'] } }
+}
+
+-- map reduce
+{
+     'collectionName' : 'customers',
+     'findQuery' : { 'industry' : { '$in' : $P{MyCollectionParameter} } }
+}
+
+-- aggregation
+{
+   runCommand: {
+        aggregate : 'zips',
+        pipeline : [
+                {
+                        $group : {
+                                _id : '$state',
+                                population: {
+                                        $sum : '$pop'
+                                }
+                        }
+                },
+                {
+                        $sort : {
+                                population : -1
+                        }
+                }
+        ]
+}
+
+
+
+MongoDB with Java
+------------------
+
+1. Download JDK from http://www.oracle.com/technetwork/java/javase/downloads/index.html
+2. Install the same
+3. Open command prompt and type: java -version. This should check the proper installation.
+4. Download eclipse from https://www.eclipse.org/downloads/
+5. Install eclipse
+6. Download mongodb-java driver from https://github.com/mongodb/mongo-java-driver/downloads
+7. Open eclipse and workspace
+8. Create a java project
+9. Create a java project and add the above jar in the class path
+
+Please share your review
+------------------------
+http://www.quora.com/Reviews-of-Edureka-online-education
+
