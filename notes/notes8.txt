@@ -104,7 +104,4 @@ MongoDB with Java
 8. Create a java project
 9. Create a java project and add the above jar in the class path
 
-Please share your review
-------------------------
-http://www.quora.com/Reviews-of-Edureka-online-education
 
