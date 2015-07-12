@@ -162,6 +162,10 @@ Explain Plan
 }
 >
 
+> db.class.find().explain('executionStats')
+
+> db.class.find().explain('allPlansExecution')
+
 
 Capped Collection
 ----------------
