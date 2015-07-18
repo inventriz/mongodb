@@ -18,7 +18,7 @@ By default, background is false for building MongoDB indexes.
 
 db.people.ensureIndex( { zipcode: 1}, {background: true, sparse: true } )
 
--- drop duplicate
+-- drop duplicate // valid before mongodb 3.0; 2.7 or newer is not supported
 db.accounts.ensureIndex( { username: 1 }, { unique: true, dropDups: true } )
 
 -- index name
