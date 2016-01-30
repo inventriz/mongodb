@@ -1,0 +1,47 @@
+{
+	itemNumber: "12345678",
+	name: "Spree T-Shirt",
+	description: "Awesome Spree T-Shirt",
+	type: "SA",
+	category: "Apparel",
+	path: "Apparel/Men's Shirt",
+	attributes: [
+		color: "White",
+		size : "Large",
+		barcode: "3448573759735",
+		"image_id": 562641783,
+		"weight": 0.2,
+		"weight_unit": "kg",
+		"material": "cotton",
+		"shipping_category": "Default",
+		"brand" : "Raymond"
+
+		
+	],
+	price : [
+		{
+		type: "list",
+		startDate: ISODate("2012-03-09T20:55:36Z"),
+		endDate: ISODate("2012-03-31T20:55:36Z"),
+		price: 10,
+		unit: "USD"
+		},
+		{
+		type: "regular",
+		startDate: new Date(),
+		endDate: ISODate("2012-03-21T20:55:36Z"),
+		price: 11,
+		unit: "USD"
+		},
+		{
+		type: "saving",
+		price: 1,
+		unit: "USD"
+		},
+		{
+		type: "perct_saving",
+		price: 10,
+		unit: "%"
+		}
+	]
+}
