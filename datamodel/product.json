@@ -25,7 +25,7 @@
 	},
 	{
 		type: "regular",
-		startDate: newDate(),
+		startDate: new Date(),
 		endDate: ISODate("2012-03-21T20:55:36Z"),
 		price: 11,
 		unit: "USD"
