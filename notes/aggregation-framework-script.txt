@@ -1,0 +1,557 @@
+Step1: 
+
+Download the data from the MongoDB site, refer the below URL "http://media.mongodb.org/zips.json"
+Place the file at specific location. I gave name of the file as zips.json
+
+Step2:
+
+Load the data with mongoimport utility. In below statement I have given database name as zips
+Collection name as aggr
+File Type is JSON
+
+mongoimport -d zips  -c aggr --ignoreBlanks --drop --type json --file "C:\Users\USER\Desktop\MongoDBClasses\zips.json"
+
+
+Step3:
+
+>mongo
+>show databases
+>use zips
+>show collections
+>db.aggr.findOne()
+
+Data Model
+
+Each document in the zipcode collection has the following form:
+
+{
+  "_id": "10280",
+  "city": "NEW YORK",
+  "state": "NY",
+  "pop": 5574,
+  "loc": [
+    -74.016323,
+    40.710537
+  ]
+}
+
+/*******************************************General Purpose Aggregation **********************************************************/
+
+Count, Distinct Group
+
+
+/*******************************************Count the number of documenst*********************************************************/
+
+db.aggr.count();
+
+db.aggr.count({city:"ACMAR"});
+
+db.aggr.count({state:"AL"});
+
+/********************************************Distinct Documenst******************************************************************/
+
+db.aggr.distinct("state");
+
+db.aggr.distinct("state").length
+
+/*******************************************Group Documents**********************************************************************/
+
+The group operation takes a number of documents that match a query, and then collects groups of documents based on the value of a field or fields. 
+
+It returns an array of documents with computed results for each group of documents.
+
+Access the grouping functionality via the group command or the db.collection.group() method in the mongo shell.
+
+db.records.insert({ a: 1, count: 4 });
+db.records.insert({ a: 1, count: 2 });
+db.records.insert({ a: 1, count: 4 });
+db.records.insert({ a: 2, count: 3 });
+db.records.insert({ a: 2, count: 1 });
+db.records.insert({ a: 1, count: 5 });
+db.records.insert({ a: 4, count: 4 });
+
+Consider the following group operation which groups documents by the field a, where a is less than 3, and sums the field count for each group:
+
+db.records.group( {
+   key: { a: 1 },
+   cond: { a: { $lt: 3 } },
+   reduce: function(cur, result) { result.count += cur.count },
+   initial: { count: 0 }
+} );
+
+db.aggr.group( {
+   key: { state: 1 },
+   cond: { pop: { $lte: 6055 } },
+   reduce: function(cur, result) { result.count += cur.pop },
+   initial: { count: 0 }
+} );
+
+
+
+
+The _id field holds the zip code as a string.
+The city field holds the city.
+The state field holds the two letter state abbreviation.
+The pop field holds the population.
+The loc field holds the location as a latitude longitude pair.
+All of the following examples use the aggregate() helper in the mongo shell. 
+aggregate() provides a wrapper around the aggregate database command
+
+{
+  aggregate: "<collection>",
+  pipeline: [ <stage>, <...> ],
+  explain: <boolean>,
+  allowDiskUse: <boolean>,
+  cursor: <document>
+}
+
+
+The aggregate command takes the following fields as arguments:
+
+Field		Type	Description
+___________________________________________________________________________
+aggregate	string		The name of the collection to as the input for the aggregation pipeline.
+pipeline	array		An array of aggregation pipeline stages that process and transform the document 
+						stream as part of the aggregation pipeline.
+explain		boolean		Optional. Specifies to return the information on the processing of the pipeline.
+allowDiskUse	boolean		Optional. Enables writing to temporary files. When set to true, aggregation stages 
+				can write data to the _tmp subdirectory in the dbPath directory.
+cursor		document	Optional. Specify a document that contains options that control the creation of the cursor object.
+___________________________________________________________________________________________________________________________________
+
+
+/*****************************************************Aggregation Pipeline*************************************************/
+
+/*************Return States with Populations above 10 Million***************/
+
+db.aggr.aggregate( { $group :
+                         { _id : "$state",
+                           totalPop : { $sum : "$pop" } } },
+                       { $match : {totalPop : { $gte : 10*1000*1000 } } } )
+					   
+					   
+db.aggr.aggregate( { $group :
+                         { _id : "$state",
+                           totalPop : { $sum : "$pop" } } },
+                       { $match : {totalPop : { $gte : 10000000} } } )
+
+
+
+Explanation of the above query
+___________________________________
+
+
+In this example, the pipeline passes all documents in the zipcodes collection through the following steps:
+
+the $group operator collects all documents and creates documents for each state.
+These new per-state documents have one field in addition to the _id field: totalPop which is a generated 
+field using the $sum operation to calculate the total value of all pop fields in the source documents.
+
+After the $group operation the documents in the pipeline resemble the following:
+
+{
+  "_id" : "AK",
+  "totalPop" : 550043
+}
+
+the $match operation filters these documents so that the only documents that remain are those where the value of 
+totalPop is greater than or equal to 10 million.
+The $match operation does not alter the documents, which have the same format as the documents output by $group.
+
+The equivalent SQL for this operation is:
+
+SELECT state, SUM(pop) AS totalPop FROM zipcodes GROUP BY state HAVING totalPop >= (10*1000*1000)
+
+
+
+
+/**************************************************Return Average City Population by State***************************************/
+
+To return the average populations for cities in each state, use the following aggregation operation:
+
+db.aggr.aggregate( { $group :
+                         { _id : { state : "$state", city : "$city" },
+                           pop : { $sum : "$pop" } } },
+                       { $group :
+                       { _id : "$_id.state",
+                         avgCityPop : { $avg : "$pop" } } } )
+
+
+Aggregations operations using the aggregate() helper process all documents in the zipcodes collection. 
+aggregate() connects a number of pipeline operators that define the aggregation process.
+
+In this example, the pipeline passes all documents in the zipcodes collection through the following steps:
+
+the $group operator collects all documents and creates new documents for every combination of the city and 
+state fields in the source document.
+
+After this stage in the pipeline, the documents resemble the following:
+
+{
+  "_id" : {
+    "state" : "CO",
+    "city" : "EDGEWATER"
+  },
+  "pop" : 13154
+}
+
+the second $group operator collects documents by the state field and use the $avg expression to compute a 
+value for the avgCityPop field.
+The final output of this aggregation operation is:
+
+{
+  "_id" : "MN",
+  "avgCityPop" : 5335
+},
+
+
+
+/******************************************************Return Largest and Smallest Cities by State*****************************/
+
+To return the smallest and largest cities by population for each state, use the following aggregation operation:
+
+db.aggr.aggregate( { $group:
+                         { _id: { state: "$state", city: "$city" },
+                           pop: { $sum: "$pop" } } },
+                       { $sort: { pop: 1 } },
+                       { $group:
+                         { _id : "$_id.state",
+                           biggestCity:  { $last: "$_id.city" },
+                           biggestPop:   { $last: "$pop" },
+                           smallestCity: { $first: "$_id.city" },
+                           smallestPop:  { $first: "$pop" } } },
+
+                       // the following $project is optional, and
+                       // modifies the output format.
+
+                       { $project:
+                         { _id: 0,
+                           state: "$_id",
+                           biggestCity:  { name: "$biggestCity",  pop: "$biggestPop" },
+                           smallestCity: { name: "$smallestCity", pop: "$smallestPop" } } }
+					, {$limit : 1}).pretty()
+
+
+Aggregation operations using the aggregate() helper process all documents in the zipcodes collection. 
+aggregate() combines a number of pipeline operators that define the aggregation process.
+
+All documents from the zipcodes collection pass into the pipeline, which consists of the following steps:
+
+
+the $group operator collects all documents and creates new documents for every combination of the city and state 
+fields in the source documents.
+
+By specifying the value of _id as a sub-document that contains both fields, the operation preserves the state field 
+for use later in the pipeline. The documents produced by this stage of the pipeline have a second field, pop, which 
+uses the $sum operator to provide the total of the pop fields in the source document.
+
+At this stage in the pipeline, the documents resemble the following:
+
+{
+  "_id" : {
+    "state" : "CO",
+    "city" : "EDGEWATER"
+  },
+  "pop" : 13154
+}
+
+$sort operator orders the documents in the pipeline based on the vale of the pop field from largest to smallest. 
+
+This operation does not alter the documents.
+
+The second $group operator collects the documents in the pipeline by the state field, which is a field inside the 
+nested _id document.
+
+Within each per-state document this $group operator specifies four fields: Using the $last expression, 
+the $group operator creates the biggestcity and biggestpop fields that store the city with the largest 
+population and that population. Using the $first expression, the $group operator creates the smallestcity 
+and smallestpop fields that store the city with the smallest population and that population.
+
+The documents, at this stage in the pipeline resemble the following:
+
+{
+  "_id" : "WA",
+  "biggestCity" : "SEATTLE",
+  "biggestPop" : 520096,
+  "smallestCity" : "BENGE",
+  "smallestPop" : 2
+}
+
+The final operation is $project, which renames the _id field to state and moves the biggestCity, biggestPop, smallestCity, 
+and smallestPop into biggestCity and smallestCity sub-documents.
+
+The output of this aggregation operation is:
+
+{
+  "state" : "RI",
+  "biggestCity" : {
+    "name" : "CRANSTON",
+    "pop" : 176404
+  },
+  "smallestCity" : {
+    "name" : "CLAYVILLE",
+    "pop" : 45
+  }
+}
+
+
+
+/************************************************MapReduce**********************************************************************/
+
+Inserting data to MongoDB.
+
+Let’s first create two books with the following commands.
+
+book1 = {name : "Understanding JAVA", pages : 100};
+book2 = {name : "Understanding JSON", pages : 200};
+
+Now, let’s insert these two books in to a collection called books.
+
+db.books.save(book1);
+db.books.save(book2);
+
+The above two statements will create a collection called books under the database library. 
+Following statement will list out the two books which we just saved.
+
+db.books.find();
+
+Let’s add few more records.
+
+book = {name : "Understanding XML", pages : 300};
+db.books.save(book);
+book = {name : "Understanding Web Services", pages : 400};
+db.books.save(book);
+book = {name : "Understanding Axis2", pages : 150};
+db.books.save(book);
+
+Writing the Map function
+
+Let’s process this library collection in a way that, we need to find the number of books having pages less 
+250 pages and greater than that.
+
+var map = function() {
+	var category;
+	if ( this.pages >= 250 )
+	category = 'Big Books';
+	else
+	category = "Small Books";
+	emit(category, {name: this.name});
+};
+
+Here, the collection produced by the Map function will have a collection of following members.
+
+{"Big Books",[{name: "Understanding XML"}, {name : "Understanding Web Services"}]);
+{"Small Books",[{name: "Understanding JAVA"}, {name : "Understanding JSON"},{name: "Understanding Axis2"}]);
+
+Writing the Reduce function.
+
+var reduce = function(key, values) {
+	var sum = 0;
+	values.forEach(function(doc) {
+		sum += 1;
+	});
+	return {books: sum};
+};
+
+Running MapReduce against the books collection.
+
+var count  = db.books.mapReduce(map, reduce, {out: "book_results"});
+db[count.result].find()
+
+The above says, we have 2 Big Books and 3 Small Books.
+
+Everything done above using the MongoDB shell, can be done with Java too. 
+
+Following is the Java client for it. 
+
+/****************************************Java MapReduce Code for The above example********************************************/
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.MapReduceCommand;
+import com.mongodb.MapReduceOutput;
+import com.mongodb.Mongo;
+ 
+public class MongoClient {
+/**
+  * @param args
+*/
+public static void main(String[] args) {
+Mongo mongo;
+  try {
+   mongo = new Mongo("localhost", 27017);
+   DB db = mongo.getDB("library");
+   DBCollection books = db.getCollection("books");
+   BasicDBObject book = new BasicDBObject();
+   book.put("name", "Understanding JAVA");
+   book.put("pages", 100);
+   books.insert(book);
+   book = new BasicDBObject(); 
+   book.put("name", "Understanding JSON");
+   book.put("pages", 200);
+   books.insert(book);   book = new BasicDBObject();
+   book.put("name", "Understanding XML");
+   book.put("pages", 300);
+   books.insert(book);
+   book = new BasicDBObject();
+   book.put("name", "Understanding Web Services");
+   book.put("pages", 400);
+   books.insert(book);
+   book = new BasicDBObject();
+   book.put("name", "Understanding Axis2");
+   book.put("pages", 150);
+   books.insert(book);
+   String map = "function() { "+
+             "var category; " + 
+             "if ( this.pages >= 250 ) "+ 
+             "category = 'Big Books'; " +
+             "else " +
+             "category = 'Small Books'; "+ 
+             "emit(category, {name: this.name});}";
+    
+   String reduce = "function(key, values) { " +
+                            "var sum = 0; " +
+                            "values.forEach(function(doc) { " +
+                            "sum += 1; "+
+                            "}); " +
+                            "return {books: sum};} ";
+    
+   MapReduceCommand cmd = new MapReduceCommand(books, map, reduce,
+   null, MapReduceCommand.OutputType.INLINE, null);
+   MapReduceOutput out = books.mapReduce(cmd);
+   for (DBObject o : out.results()) {
+    System.out.println(o.toString());
+   }
+  } catch (Exception e) {
+   // TODO Auto-generated catch block
+   e.printStackTrace();
+  }
+ }
+}
+
+
+
+
+/*******************************************Perform Incremental Map-Reduce *********************************************************/
+
+Map-reduce operations can handle complex aggregation tasks. 
+To perform map-reduce operations, MongoDB provides the mapReduce command and, 
+in the mongo shell, the db.collection.mapReduce() wrapper method.
+
+
+If the map-reduce data set is constantly growing, you may want to perform an 
+incremental map-reduce rather than performing the map-reduce operation over the entire data set each time.
+
+To perform incremental map-reduce:
+
+Run a map-reduce job over the current collection and output the result to a separate collection.
+When you have more data to process, run subsequent map-reduce job with:
+the query parameter that specifies conditions that match only the new documents.
+the out parameter that specifies the reduce action to merge the new results into the existing output collection.
+Consider the following example where you schedule a map-reduce operation on a sessions collection to run at the end of each day.
+
+
+/******Data Setup******/
+
+The sessions collection contains documents that log users’ sessions each day, for example:
+
+db.sessions.save( { userid: "a", ts: ISODate('2011-11-03 14:17:00'), length: 95 } );
+db.sessions.save( { userid: "b", ts: ISODate('2011-11-03 14:23:00'), length: 110 } );
+db.sessions.save( { userid: "c", ts: ISODate('2011-11-03 15:02:00'), length: 120 } );
+db.sessions.save( { userid: "d", ts: ISODate('2011-11-03 16:45:00'), length: 45 } );
+
+db.sessions.save( { userid: "a", ts: ISODate('2011-11-04 11:05:00'), length: 105 } );
+db.sessions.save( { userid: "b", ts: ISODate('2011-11-04 13:14:00'), length: 120 } );
+db.sessions.save( { userid: "c", ts: ISODate('2011-11-04 17:00:00'), length: 130 } );
+db.sessions.save( { userid: "d", ts: ISODate('2011-11-04 15:37:00'), length: 65 } );
+
+Initial Map-Reduce of Current Collection
+
+Run the first map-reduce operation as follows:
+
+Define the map function that maps the userid to an object that contains the fields userid, total_time, count, and avg_time:
+
+var mapFunction = function() {
+                      var key = this.userid;
+                      var value = {
+                                    userid: this.userid,
+                                    total_time: this.length,
+                                    count: 1,
+                                    avg_time: 0
+                                   };
+
+                      emit( key, value );
+                  };
+Define the corresponding reduce function with two arguments key and values to calculate the total time and the count. 
+The key corresponds to the userid, and the values is an array whose elements corresponds to the individual objects 
+mapped to the userid in the mapFunction.
+
+var reduceFunction = function(key, values) {
+
+                        var reducedObject = {
+                                              userid: key,
+                                              total_time: 0,
+                                              count:0,
+                                              avg_time:0
+                                            };
+
+                        values.forEach( function(value) {
+                                              reducedObject.total_time += value.total_time;
+                                              reducedObject.count += value.count;
+                                        }
+                                      );
+
+                        return reducedObject;
+                     };
+
+
+
+Define the finalize function with two arguments key and reducedValue. 
+The function modifies the reducedValue document to add another field average and returns the modified document.
+
+var finalizeFunction = function (key, reducedValue) {
+
+                          if (reducedValue.count > 0)
+                              reducedValue.avg_time = reducedValue.total_time / reducedValue.count;
+
+                          return reducedValue;
+                       };
+
+
+Perform map-reduce on the session collection using the mapFunction, the reduceFunction, and the finalizeFunction functions. 
+Output the results to a collection session_stat. If the session_stat collection already exists, the operation will replace 
+the contents:
+
+db.sessions.mapReduce( mapFunction,
+                       reduceFunction,
+                       {
+                         out: "session_stat",
+                         finalize: finalizeFunction
+                       }
+                     )
+
+Subsequent Incremental Map-Reduce
+
+Later, as the sessions collection grows, you can run additional map-reduce operations. 
+For example, add new documents to the sessions collection:
+
+db.sessions.save( { userid: "a", ts: ISODate('2011-11-05 14:17:00'), length: 100 } );
+db.sessions.save( { userid: "b", ts: ISODate('2011-11-05 14:23:00'), length: 115 } );
+db.sessions.save( { userid: "c", ts: ISODate('2011-11-05 15:02:00'), length: 125 } );
+db.sessions.save( { userid: "d", ts: ISODate('2011-11-05 16:45:00'), length: 55 } );
+
+
+At the end of the day, perform incremental map-reduce on the sessions collection, but use the query field to 
+select only the new documents. Output the results to the collection session_stat, but reduce the contents with 
+the results of the incremental map-reduce:
+
+db.sessions.mapReduce( mapFunction,
+                       reduceFunction,
+                       {
+                         query: { ts: { $gt: ISODate('2011-11-05 00:00:00') } },
+                         out: { reduce: "session_stat" },
+                         finalize: finalizeFunction
+                       }
+                     );
