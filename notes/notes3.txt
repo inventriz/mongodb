@@ -232,7 +232,7 @@ $size
 -----
 db.collection.find( { <arr>: { $size: 2 } } );
 
-BulkWrite
+BulkWrite (new in 3.2)
 ---------
 db.characters.bulkWrite(
       [
