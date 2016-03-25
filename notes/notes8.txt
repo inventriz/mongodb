@@ -22,6 +22,38 @@ start the mongo shell with --ssl and the --sslPEMKeyFile option to specify the s
 as in the following:
 mongo --ssl --sslPEMKeyFile /etc/ssl/client.pem
 
+Using keyFile
+=============
+openssl rand -base64 741 > mongokey.pem
+chmod 600 mongokey.pem
+
+start mongod with keyFile (all the shards and configdb):
+mongod --keyFile mongokey.pem
+
+login to mongos:
+create admin user:
+use admin
+db.createUser(
+  {
+    user: "myUserAdmin",
+    pwd: "abc123",
+    roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+  }
+)
+
+create normal user:
+use shrd
+db.createUser(
+  {
+    user: "shrdUser",
+    pwd: "abc123",
+    roles: [ { role: "readWrite", db: "shrd" } ]
+  }
+)
+
+db.auth("shrdUser", "abc123");
+
+
 Jasper Query
 ------------
 -- Select all
